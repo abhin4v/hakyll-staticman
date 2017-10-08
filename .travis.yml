@@ -1,0 +1,31 @@
+sudo: false
+language: c
+branches:
+  only:
+  - source
+install:
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+- stack --resolver lts --no-terminal --install-ghc install cabal-install happy alex
+- stack --resolver lts --no-terminal install --fast
+before_script:
+- cd _site
+- git checkout master
+- git pull origin master
+- git ls-files | xargs -r git rm
+- cd ..
+script:
+- $HOME/.local/bin/site build
+- cd _site
+- git status
+- git add --all
+- git config --global user.email "abhinav@abhinavsarkar.net"
+- git config --global user.name "Travis"
+- git commit -m "$TRAVIS_COMMIT_MESSAGE"
+- git push "$REPO_URL" master
+- cd ..
+cache:
+  directories:
+  - $HOME/.stack
+  - $HOME/build/abhin4v/hakyll-staticman/.stack-work
